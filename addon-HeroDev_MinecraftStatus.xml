@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<addon addon_id="HeroDev_MinecraftStatus" title="[Herocraft Development]  Minecraft Status 2.2.0-b2" version_string="2.2.0-b2" version_id="1" url="http://shadrx.com/" install_callback_class="HeroDev_MinecraftStatus_Install_Controller" install_callback_method="install" uninstall_callback_class="HeroDev_MinecraftStatus_Install_Controller" uninstall_callback_method="uninstall">
+  <admin_navigation>
+    <navigation navigation_id="minecraftServers" parent_navigation_id="minecraftStatus" display_order="1" link="minecraft-servers" admin_permission_id="minecraftServer" debug_only="0" hide_no_children="0"/>
+    <navigation navigation_id="minecraftStatus" parent_navigation_id="applications" display_order="1001" link="" admin_permission_id="" debug_only="0" hide_no_children="1"/>
+  </admin_navigation>
+  <admin_permissions>
+    <admin_permission admin_permission_id="minecraftServer" display_order="1001"/>
+  </admin_permissions>
+  <admin_style_properties/>
+  <admin_templates>
+    <template title="herodev_minecraftstatus_filter_list.css"><![CDATA[.FilterList span.statusIconOnline{ 
+  background: url("styles/herodev/minecraftstatus/status-icons/online.png") no-repeat scroll center center transparent;
+  float: left;
+  width: 20px;
+  height: 20px;
+  padding: 5px;
+}
+
+.FilterList span.statusIconOffline{ 
+  background: url("styles/herodev/minecraftstatus/status-icons/offline.png") no-repeat scroll center center transparent;
+  float: left;
+  width: 20px;
+  height: 20px;
+  padding: 5px;
+}
+
+.FilterList .infoPanel{
+	border-bottom: 1px solid {xen:property primaryLighterStill};
+	padding: 0px 45px;
+	font-size: 11px;
+	line-height: 1.5em;
+	color: rgb(120, 120, 120);
+}
+
+
+]]></template>
+    <template title="herodev_minecraftstatus_minecraftserver_delete"><![CDATA[<xen:title>{xen:phrase confirm_deletion_of_minecraft_server}: {$minecraftServer.name}</xen:title>
+<xen:h1>{xen:phrase confirm_deletion_of_minecraft_server}</xen:h1>
+
+<xen:navigation>
+	<xen:breadcrumb href="{xen:adminlink 'minecraft-servers/edit', $minecraftServer}">{$minecraftServer.name}</xen:breadcrumb>
+</xen:navigation>
+
+<xen:require css="public:delete_confirmation.css" />
+
+<xen:form action="{xen:adminlink 'minecraft-servers/delete', $minecraftServer}" class="deleteConfirmForm">
+	<p>{xen:phrase please_confirm_that_you_want_to_delete_following_minecraft_server}:</p>
+	<strong><a href="{xen:adminlink 'minecraft-servers/edit', $minecraftServer}">{$minecraftServer.name}</a></strong>
+
+	<xen:submitunit save="{xen:phrase delete_minecraft_server}" />
+
+	<input type="hidden" name="_xfConfirm" value="1" />
+</xen:form>]]></template>
+    <template title="herodev_minecraftstatus_minecraftserver_edit"><![CDATA[<xen:title>{xen:if '{$minecraftServer.minecraft_server_id}', '{xen:phrase edit_minecraft_server}: {$minecraftServer.name}', '{xen:phrase add_minecraft_server}'}</xen:title>
+
+<xen:if is="{$minecraftServer.minecraft_server_id}">
+	<xen:navigation>
+		<xen:breadcrumb href="{xen:adminlink minecraft-servers}#{xen:helper listitemid, $minecraftServer.minecraft_server_id}">{$minecraftServer.name}</xen:breadcrumb>
+	</xen:navigation>
+</xen:if>
+
+<xen:require js="js/herodev/acp_minecraft_server_edit.js" />
+
+<xen:form class="AutoValidator MinecraftServerEdit" 
+          action="{xen:adminlink 'minecraft-servers/save', $minecraftServer}" 
+          data-redirect="on">
+          
+	  <xen:textboxunit label="{xen:phrase name}:" name="name" value="{$minecraftServer.name}" data-livetitletemplate="{xen:if {$minecraftServer.minecraft_server_id},
+				'{xen:phrase edit_minecraft_server}: <em>%s</em>',
+				'{xen:phrase add_minecraft_server}: <em>%s</em>'}">
+				<xen:explain>{xen:phrase minecraft_title_explain}</xen:explain>
+	  </xen:textboxunit>
+	  
+	  <xen:textboxunit label="{xen:phrase address}:" name="address" value="{$minecraftServer.address}">
+	  	<xen:explain>{xen:phrase minecraft_address_explain}</xen:explain>
+	  </xen:textboxunit>
+	  
+          <xen:spinboxunit data-query_explain="{xen:phrase minecraft_query_port_explain}" data-normal_explain="{xen:phrase minecraft_server_port_explain}" label="{xen:if '{$minecraftServer.query_type} == "serverlistping"', '{xen:phrase minecraft_server_port}', '{xen:phrase query_port}'}:" name="query_port" value="{$minecraftServer.query_port}" min="1" max="65535" step="1">
+          	<xen:explain>{xen:if '{$minecraftServer.query_type} == "serverlistping"', '{xen:phrase minecraft_server_port_explain}', '{xen:phrase minecraft_query_port_explain}'}</xen:explain>	
+          </xen:spinboxunit>
+          
+          <fieldset>	
+          	<xen:radiounit id="query_types" label="{xen:phrase query_type}:" name="query_type" value="{$minecraftServer.query_type}">
+			<xen:options source="$queryTypes" />
+		</xen:radiounit>			
+		<xen:checkboxunit label="{xen:phrase options}:">
+			<xen:option name="active" selected="{$minecraftServer.active}" label="{xen:phrase minecraft_server_is_active}"
+				hint="{xen:phrase use_this_to_temporarily_disable_this_minecraft_server}" />
+		</xen:checkboxunit>	
+		<xen:spinboxunit label="{xen:phrase display_order}:" name="display_order" value="{$minecraftServer.display_order}" min="1" step="10" />	
+	  </fieldset>	
+	  
+	  <xen:submitunit save="{xen:phrase save_minecraft_server}">
+		<xen:if is="{$minecraftServer.minecraft_server_id}"><a href="{xen:adminlink 'minecraft-servers/delete', $minecraftServer}" class="button OverlayTrigger">{xen:phrase delete_minecraft_server}...</a></xen:if>
+	  </xen:submitunit>								
+
+</xen:form>]]></template>
+    <template title="herodev_minecraftstatus_minecraftserver_list"><![CDATA[<xen:title>Minecraft Servers</xen:title>
+
+<xen:topctrl>
+	<a href="{xen:adminlink 'minecraft-servers/add'}" class="button">+ {xen:phrase add_minecraft_server}</a>
+       <xen:if is="{$minecraftServers}"> <a href="{xen:adminlink 'minecraft-servers/refresh'}" class="button">{xen:phrase refresh_servers}</a></xen:if>
+</xen:topctrl>
+
+<style>
+
+
+</style>
+
+<xen:require css="herodev_minecraftstatus_filter_list.css" />
+<xen:require css="filter_list.css" />
+<xen:require js="js/xenforo/filter_list.js" />
+
+<xen:form action="{xen:adminlink minecraft-servers/toggle}" class="section AutoValidator" id="minecraftServerBrowser">
+	<xen:if is="{$minecraftServers}">
+		<h2 class="subHeading">
+			<xen:include template="filter_list_controls" />
+			{xen:phrase minecraft_servers}
+		</h2>
+		<ol class="FilterList">
+			<xen:foreach loop="$minecraftServers" value="$minecraftServer">
+				<xen:listitem id="{$minecraftServer.minecraft_server_id}"
+					href="{xen:adminlink 'minecraft-servers/edit', $minecraftServer}"
+					delete="{xen:adminlink 'minecraft-servers/delete', $minecraftServer}"
+					toggle="{$minecraftServer.active}"
+					toggletitle="{xen:phrase enable_disable_x, 'title={$minecraftServer.name}'}"
+					label="{$minecraftServer.name}">
+					<xen:html>
+						<xen:if is="{$minecraftServer.online}">
+							<span class="statusIconOnline"></span>
+						<xen:else />
+							<span class="statusIconOffline"></span>
+						</xen:if>
+					</xen:html>
+				</xen:listitem>
+				<div class="infoPanel">
+				<xen:if is="{$minecraftServer.online}">
+					Players Online: <span class="faint">{$minecraftServer.numplayers}/{$minecraftServer.maxplayers}</span>
+					| Minecraft Version:  <span class="faint">{$minecraftServer.version}</span>
+				<xen:else />
+					Error: <span class="faint" style="color:red">{$minecraftServer.error}</span>
+				</xen:if>
+				
+				| Last Updated: <xen:datetime time="{$minecraftServer.last_query_date}" class="faint"/>
+				</div>
+			</xen:foreach>
+		</ol>
+		
+		<p class="sectionFooter">{xen:phrase showing_x_of_y_minecraft_servers, 'count=<span class="FilterListCount">{xen:count $minecraftServers}</span>', 'total={xen:count $minecraftServers}'}</p>
+	
+	<xen:else />
+		<div class="noResults">{xen:phrase no_minecraft_servers_have_been_added_yet}</div>
+	</xen:if>
+</xen:form>
+]]></template>
+  </admin_templates>
+  <admin_template_modifications/>
+  <code_events/>
+  <code_event_listeners>
+    <listener event_id="widget_framework_ready" execute_order="10" callback_class="HeroDev_MinecraftStatus_Listener_WidgetFrameworkReady" callback_method="registerWidgetRenderer" active="1" hint="" description="Widget Renderer"/>
+  </code_event_listeners>
+  <cron>
+    <entry entry_id="minecraftStatusQuery" cron_class="HeroDev_MinecraftStatus_CronEntry_MinecraftQuery" cron_method="queryMinecraftServers" active="1"><![CDATA[{"day_type":"dom","dom":["-1"],"hours":["-1"],"minutes":["0","5","10","15","20","25","30","35","40","45","50","55"]}]]></entry>
+  </cron>
+  <email_templates/>
+  <email_template_modifications/>
+  <optiongroups/>
+  <permissions>
+    <permission_groups/>
+    <permissions/>
+    <interface_groups/>
+  </permissions>
+  <phrases>
+    <phrase title="address" version_id="4" version_string="2.2.0"><![CDATA[Address]]></phrase>
+    <phrase title="add_minecraft_server" version_id="4" version_string="2.2.0"><![CDATA[Add Minecraft Server]]></phrase>
+    <phrase title="admin_navigation_minecraftServers" version_id="4" version_string="2.2.0"><![CDATA[Minecraft Servers]]></phrase>
+    <phrase title="admin_navigation_minecraftStatus" version_id="4" version_string="2.2.0"><![CDATA[Minecraft Status]]></phrase>
+    <phrase title="admin_permission_minecraftServer" version_id="4" version_string="2.2.0"><![CDATA[Manage minecraft servers]]></phrase>
+    <phrase title="confirm_deletion_of_minecraft_server" version_id="4" version_string="2.2.0"><![CDATA[Confirm deletion of minecraft server]]></phrase>
+    <phrase title="cron_entry_minecraftStatusQuery" version_id="4" version_string="2.2.0"><![CDATA[Minecraft Status Query]]></phrase>
+    <phrase title="delete_minecraft_server" version_id="4" version_string="2.2.0"><![CDATA[Delete Minecraft Server]]></phrase>
+    <phrase title="edit_minecraft_server" version_id="4" version_string="2.2.0"><![CDATA[Edit Minecraft Server]]></phrase>
+    <phrase title="full_status" version_id="4" version_string="2.2.0"><![CDATA[Full Status]]></phrase>
+    <phrase title="full_status_hint" version_id="4" version_string="2.2.0"><![CDATA[Using this option requires 'enable.query' to be set to true in your server.properties. It will show a player list, an online count and whether or not the server is online. ]]></phrase>
+    <phrase title="minecraft_address_explain" version_id="4" version_string="2.2.0"><![CDATA[The address you use to connect to your minecraft server. This could be an ip address such as 203.0.113.1 or a domain name like example.com]]></phrase>
+    <phrase title="minecraft_query_port_explain" version_id="4" version_string="2.2.0"><![CDATA[Your minecraft server's query port. This port is set under 'query.port=' in your server.properties file.]]></phrase>
+    <phrase title="minecraft_servers" version_id="4" version_string="2.2.0"><![CDATA[Minecraft Servers]]></phrase>
+    <phrase title="minecraft_server_is_active" version_id="4" version_string="2.2.0"><![CDATA[Minecraft server is active]]></phrase>
+    <phrase title="minecraft_server_port" version_id="4" version_string="2.2.0"><![CDATA[Minecraft Server Port]]></phrase>
+    <phrase title="minecraft_server_port_explain" version_id="4" version_string="2.2.0"><![CDATA[Your minecraft server's port. The one you use to connect to it usually!]]></phrase>
+    <phrase title="minecraft_title_explain" version_id="4" version_string="2.2.0"><![CDATA[The name of your minecraft server. It'll be used in various places around your forum to refer to it. ]]></phrase>
+    <phrase title="no_minecraft_servers_have_been_added_yet" version_id="4" version_string="2.2.0"><![CDATA[No minecraft servers have been added yet.]]></phrase>
+    <phrase title="please_confirm_that_you_want_to_delete_following_minecraft_server" version_id="4" version_string="2.2.0"><![CDATA[Please confirm that you want to delete the following minecraft server]]></phrase>
+    <phrase title="query_port" version_id="4" version_string="2.2.0"><![CDATA[Query Port]]></phrase>
+    <phrase title="query_type" version_id="4" version_string="2.2.0"><![CDATA[Query Type]]></phrase>
+    <phrase title="refresh_servers" version_id="4" version_string="2.2.0"><![CDATA[Refresh Servers]]></phrase>
+    <phrase title="save_minecraft_server" version_id="4" version_string="2.2.0"><![CDATA[Save Minecraft Server]]></phrase>
+    <phrase title="serverlistping" version_id="4" version_string="2.2.0"><![CDATA[Server List Ping]]></phrase>
+    <phrase title="serverlistping_hint" version_id="4" version_string="2.2.0"><![CDATA[This option does not require 'enable-query' to be set to true in your server.properties. It will show a player count and whether or not the server is online or not. ]]></phrase>
+    <phrase title="short_status" version_id="4" version_string="2.2.0"><![CDATA[Short Status]]></phrase>
+    <phrase title="short_status_hint" version_id="4" version_string="2.2.0"><![CDATA[Using this option requires 'enable.query' to be set to true in your server.properties. This option will show a player count and whether or not your server is online. It will not show a player list. ]]></phrase>
+    <phrase title="showing_x_of_y_minecraft_servers" version_id="4" version_string="2.2.0"><![CDATA[Showing {count} of {total} Minecraft Servers]]></phrase>
+    <phrase title="style_property_group_minecraftStatus_master" version_id="4" version_string="2.2.0"><![CDATA[[Herocraft Development] Minecraft Status]]></phrase>
+    <phrase title="style_property_group_minecraftStatus_master_desc" version_id="4" version_string="2.2.0"><![CDATA[Display settings for]]></phrase>
+    <phrase title="use_this_to_temporarily_disable_this_minecraft_server" version_id="4" version_string="2.2.0"><![CDATA[Use this to temporarily disable this minecraft server. ]]></phrase>
+  </phrases>
+  <route_prefixes>
+    <route_type type="admin">
+      <prefix original_prefix="minecraft-servers" class="HeroDev_MinecraftStatus_Route_PrefixAdmin_MinecraftServers" build_link="all"/>
+    </route_type>
+  </route_prefixes>
+  <style_properties>
+    <group group_name="minecraftStatus" display_order="10000">
+      <title>[Herocraft Development] Minecraft Status</title>
+      <description>Display settings for</description>
+    </group>
+  </style_properties>
+  <templates>
+    <template title="herodev_minecraftstatus_widget_status" version_id="1" version_string="2.2.0-b2"><![CDATA[<xen:require css="wf_default.css" />
+<xen:require js="js/herodev/wf_status_block.js" />
+<xen:require css="herodev_minecraftstatus_widget_status.css" />
+<xen:if hascontent="true">
+<div class="minecraftServerStatus">
+   <xen:contentcheck>
+   <xen:foreach loop="$minecraftServers" value="$minecraftServer">
+        <xen:if is="{$minecraftServer.online}">
+            <div class="minecraftServer online">
+               <h4 class="minorHeading">{$minecraftServer.name}</h4> 
+
+               <div class="info">
+                  <span class="prefix prefixLightGreen">{$minecraftServer.numplayers}/{$minecraftServer.maxplayers}</span>
+               </div>
+               
+               <xen:if is="{$minecraftServer.playerList}">
+                   <div class="playerList">
+                        <xen:foreach loop="$minecraftServer.playerList" key="$key" value="$player" i="$i">
+                            <xen:if is="{$i} <= 200">
+                    	        <a {$player.profileLink} class="MinecraftAvatar avatar"><img width="18" height="18" data-offsetx="-8px" class="Tooltip" title="{$player.username}" src="https://minotar.net/avatar/{$player.username}/30.png"/></a>
+	                    </xen:if>
+                        </xen:foreach>
+                   </div> 
+               </xen:if>
+               
+               <p class="lastUpdated">Last Updated: <xen:datetime time="{$minecraftServer.last_query_date}" class="faint"/></p>
+            </div>
+         <xen:else />
+             <div class="minecraftServer offline">
+                <h4 class="minorHeading"> {$minecraftServer.name}</h4>
+                    
+                  <div class="info">
+                      <span class="prefix prefixRed">Offline</span> 
+                  </div>
+
+                <p class="lastUpdated">Last Updated: <xen:datetime time="{$minecraftServer.last_query_date}" class="faint"/></p>
+             </div>
+         </xen:if>
+    </xen:foreach>
+    </xen:contentcheck>
+    </div>
+</xen:if>]]></template>
+    <template title="herodev_minecraftstatus_widget_status.css" version_id="0" version_string="2.2.0-b1"><![CDATA[.minecraftServer:not(:last-child){
+	margin-bottom: 10px;
+}
+
+        .minecraftServerStatus .minorHeading{
+  		font-size: 110%;
+  		display: inline-block
+	}
+
+	.minecraftServer .info {
+		float: right;
+		margin: 8px;
+	        font-size: 9px;
+	}
+        
+        .minecraftServer .playerList {
+		width: 180px;
+		margin-top: 3px;
+	}
+	
+	.minecraftServer p.lastUpdated {
+		font-size: 9px;
+	}]]></template>
+  </templates>
+  <public_template_modifications/>
+  <bb_code_media_sites/>
+</addon>
